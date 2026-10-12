@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Private Clinic v2.0 - Juba | Secure</title>
+<style>:root{--red:#C41E1E;--dark:#0f172a}*{box-sizing:border-box;font-family:Inter,Arial}body{margin:0;background:#f1f5f9}.top{position:sticky;top:0;z-index:50;background:var(--dark);color:#fff;padding:10px 14px;display:flex;justify-content:space-between}.card{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid #e2e8f0}.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}.btn-red{background:var(--red);color:#fff}.btn-dark{background:var(--dark);color:#fff}input,select,textarea{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;font-weight:600}.tab{display:none}.tab.active{display:block}.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.tabs button{padding:8px 14px;border-radius:22px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;font-weight:700}.tabs button.active{background:var(--dark);color:#fff}#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at top,#fff,#cbd5e1)}.login-card{width:100%;max-width:420px;background:#fff;border-radius:18px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.2)}.triage-RED{border-left:8px solid var(--red);background:#fff1f2}.triage-YELLOW{border-left:8px solid #ca8a04;background:#fefce8}.triage-GREEN{border-left:8px solid #15803d;background:#f0fdf4}</style>
+<audio id="emergencySound" preload="auto" loop><source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg"></audio>
+</head>
+<body>
+<div id="loginPage"><div class="login-card"><h2 style="text-align:center;color:var(--red)">🏥 PRIVATE CLINIC JUBA</h2><p style="text-align:center;font-weight:700">Secure System v2.0</p>
+<select id="roleSel"><option value="guard">🛡️ Guard</option><option value="nurse">👩‍⚕️ Nurse</option><option value="doctor">👨‍⚕️ Doctor</option><option value="admin">⚙️ Admin</option></select>
+<input id="u" placeholder="Email" style="margin-top:8px"><input id="p" type="password" placeholder="Password" style="margin-top:8px">
+<button class="btn btn-red" style="width:100%;margin-top:12px" onclick="login()">Login</button><small id="loginMsg" style="color:red;display:block;text-align:center;margin-top:8px"></small>
+<div style="margin-top:10px;font-size:11px;background:#f1f5f9;padding:8px;border-radius:8px">Demo: guard@clinic.com / doctor@clinic.com / admin@clinic.com<br>Pass: Juba2026!</div></div></div>
+<div id="app" style="display:none"><div class="top"><div><b>CLINIC SECURE</b> <span id="roleBadge" style="background:var(--red);padding:3px 10px;border-radius:12px;font-size:11px"></span> <span id="onlineCount" style="background:#15803d;padding:3px 8px;border-radius:10px;font-size:11px">● Online</span> <span id="alertBell" style="display:none;background:var(--red);padding:3px 8px;border-radius:10px">🚨 طوارئ</span></div><div><span id="emailBadge" style="font-size:11px"></span> <button class="btn" style="background:#fff;color:#000;padding:6px 10px" onclick="logout()">Logout</button></div></div>
+<div style="max-width:1200px;margin:10px auto;padding:0 10px">
+<div id="onlineList" style="background:#fff;padding:8px 14px;border-radius:10px;margin-bottom:8px;border:1px solid #e2e8f0;font-size:12px">Loading online...</div>
+<div class="tabs"><button class="active" onclick="showTab('gate')">🛡️ Gate</button><button onclick="showTab('er')">🚨 ER</button><button onclick="showTab('patients')">🧑 Patients</button><button onclick="showTab('comm')">📢 Comm</button><button onclick="showTab('audit')">🔍 Audit Log</button></div>
+<div id="tab-gate" class="tab active"><div class="card"><h3>Gate - Security</h3><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><div><small>Visitor Name *</small><input id="v_name" maxlength="50"></div><div><small>ID No *</small><input id="v_id" maxlength="20"></div><div><small>Phone</small><input id="v_phone" maxlength="15"></div></div><button class="btn btn-dark" style="width:100%;margin-top:10px" onclick="saveVisitor()">Check-IN</button><div id="gateList" style="margin-top:10px"></div><div style="margin-top:14px;background:#fee2e2;border:2px solid var(--red);padding:12px;border-radius:12px"><b>🚨 Emergency Broadcast</b><div style="display:flex;gap:6px;margin-top:6px"><input id="alertMsg" placeholder="مثال: شجار في البوابة" maxlength="100"><button class="btn btn-red" onclick="sendEmergency()">إرسال بصوت + إشعار</button></div></div></div></div>
+<div id="tab-er" class="tab"><div class="card"><h3>ER Triage</h3><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><div><small>Name *</small><input id="er_name" maxlength="50"></div><div><small>Age</small><input id="er_age" type="number" min="0" max="120"></div><div><small>Triage</small><select id="er_triage"><option value="RED">🔴 RED</option><option value="YELLOW">🟡 YELLOW</option><option value="GREEN">🟢 GREEN</option></select></div></div><div style="margin-top:8px"><small>Complaint *</small><textarea id="er_complaint" rows="2" maxlength="200"></textarea></div><button class="btn btn-red" style="width:100%;margin-top:10px" onclick="saveER()">Save ER</button><div id="erList" style="margin-top:12px"></div></div></div>
+<div id="tab-patients" class="tab"><div class="card"><h3>Patients - MRN</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><small>Full Name *</small><input id="p_name" maxlength="50"></div><div><small>Phone *</small><input id="p_phone" maxlength="15"></div></div><button class="btn btn-dark" style="width:100%;margin-top:10px" onclick="savePatient()">Create MRN</button><div id="patientsList" style="margin-top:10px"></div></div></div>
+<div id="tab-comm" class="tab"><div class="card"><h3>Intercom</h3><div style="display:flex;gap:6px"><select id="comm_to" style="flex:1"><option value="ALL">ALL</option><option value="DOCTORS">DOCTORS</option><option value="NURSES">NURSES</option><option value="GUARDS">GUARDS</option></select><input id="comm_msg" placeholder="Message..." maxlength="150" style="flex:2"><button class="btn btn-dark" onclick="sendComm()">Send</button></div><div id="commList" style="margin-top:12px;max-height:350px;overflow-y:auto"></div></div></div>
+<div id="tab-audit" class="tab"><div class="card"><h3>🔍 Audit Log - سجل الحماية</h3><p style="font-size:12px;color:#64748b">كل حركة في السيستم مسجلة: منو، متين، شنو عمل. ده أهم حماية قانونية للمستوصف.</p><div id="auditList"></div><button class="btn" style="background:#e2e8f0" onclick="loadAudit()">تحديث السجل</button></div></div>
+</div></div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// SECURITY 1: Firebase Config - مفروض تخفيها في Env لكن في GitHub Pages عادي مع Rules قوية
+const firebaseConfig={apiKey:"REPLACE_API_KEY",authDomain:"REPLACE_DOMAIN",projectId:"REPLACE_PROJECT",storageBucket:"REPLACE_BUCKET",messagingSenderId:"REPLACE_SENDER",appId:"REPLACE_APP_ID"};
+const app=initializeApp(firebaseConfig);const db=getFirestore(app);const auth=getAuth(app);
+let role=localStorage.getItem('clinic_role')||'';let currentEmail=localStorage.getItem('clinic_email')||'';
+let loginAttempts=0;let lastAttemptTime=0;let emergencyAudio=document.getElementById('emergencySound');let lastAlertId=localStorage.getItem('lastAlertId')||'';
+
+// SECURITY 2: XSS Protection - أهم حماية ضد حقن كود خبيث في اسم المريض
+const esc=(s)=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+// SECURITY 3: Input Validation - ما تسمح بحروف غريبة أو طويلة
+const isValidName=(s)=>/^[a-zA-Z\u0600-\u06FF\s\-']{2,50}$/.test(s.trim());
+const isValidPhone=(s)=>/^[0-9+\-]{7,15}$/.test(s.trim());
+
+function initApp(){document.getElementById('loginPage').style.display='none';document.getElementById('app').style.display='block';document.getElementById('roleBadge').innerText=role.toUpperCase();document.getElementById('emailBadge').innerText=currentEmail;requestNotifyPermission();startPresence();listenEmergency();loadVisitors();loadER();loadPatients();loadComm();loadAudit();}
+
+window.login=async()=>{
+  // SECURITY 4: Brute Force Protection - لو حاول 5 مرات غلط، اقفل 5 دقايق
+  let now=Date.now();if(now-lastAttemptTime<300000 && loginAttempts>=5){loginMsg.innerText='محظور 5 دقايق - محاولات كتيرة';return;}
+  let email=document.getElementById('u').value.trim().toLowerCase();let pass=document.getElementById('p').value.trim();
+  // SECURITY 5: Email format validation
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){loginMsg.innerText='Email غير صحيح';return;}
+  if(pass.length<6){loginMsg.innerText='Password ضعيف';return;}
+  try{
+    await signInWithEmailAndPassword(auth,email,pass);
+    role=document.getElementById('roleSel').value;
+    if(email.includes('admin'))role='admin';else if(email.includes('guard'))role='guard';else if(email.includes('doctor'))role='doctor';else if(email.includes('nurse'))role='nurse';
+    currentEmail=email;localStorage.setItem('clinic_role',role);localStorage.setItem('clinic_email',email);
+    loginAttempts=0;
+    await logAudit('LOGIN', 'User logged in: '+email); // SECURITY 6: Audit Log
+    initApp();
+  }catch(e){
+    loginAttempts++;lastAttemptTime=now;loginMsg.innerText='فشل: '+e.code;await logAudit('LOGIN_FAILED','Failed login for '+email+' - '+e.code);
+  }
+};
+window.logout=async()=>{await logAudit('LOGOUT', currentEmail+' logged out');try{await signOut(auth)}catch{}localStorage.clear();location.reload();};
+onAuthStateChanged(auth,u=>{if(u&&role)initApp();});
+window.showTab=(id)=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+id).classList.add('active');event.target.classList.add('active');};
+
+// SECURITY 7: Audit Log - كل حركة مسجلة
+async function logAudit(action, details){
+  try{await addDoc(collection(db,'clinic_audit'),{action:esc(action),details:esc(details).slice(0,200),email:currentEmail,role,timestamp:new Date(),ip:'client'});}catch{}
+}
+
+// SECURITY 8: Role Check - ما أي زول يمسح
+window.delDoc=async(col,id)=>{if(role!=='admin'){alert('Admin only - مسموح للإدارة فقط');await logAudit('UNAUTHORIZED_DELETE', currentEmail+' tried delete '+col);return;}if(!confirm('Delete?'))return;await deleteDoc(doc(db,col,id));await logAudit('DELETE','Deleted '+col+'/'+id);};
+
+window.saveVisitor=async()=>{
+  let name=v_name.value.trim();let idNo=v_id.value.trim();let phone=v_phone.value.trim();
+  if(!isValidName(name))return alert('اسم غير صحيح - حروف فقط');if(idNo.length<3)return alert('ID قصير');
+  if(phone &&!isValidPhone(phone))return alert('تلفون غير صحيح');
+  let data={name:esc(name),idNo:esc(idNo),phone:esc(phone),status:'IN',createdAt:new Date(),createdBy:currentEmail}; // SECURITY: esc() قبل الحفظ
+  await addDoc(collection(db,'clinic_visitors'),data);await logAudit('VISITOR_IN','Visitor '+name);alert('✅ IN');loadVisitors();
+};
+async function loadVisitors(){let snap=await getDocs(query(collection(db,'clinic_visitors'),orderBy('createdAt','desc'),limit(30)));let h='';snap.forEach(d=>{let x=d.data();h+=`<div class="card" style="padding:8px"><b>${esc(x.name)}</b> - ${esc(x.idNo)} - ${esc(x.status)}<br><small>by ${esc(x.createdBy)}</small></div>`});gateList.innerHTML=h;}
+
+window.saveER=async()=>{
+  let name=er_name.value.trim();let comp=er_complaint.value.trim();let age=parseInt(er_age.value)||0;
+  if(!isValidName(name))return alert('اسم غير صحيح');if(comp.length<3)return alert('الشكوى قصيرة');if(age<0||age>120)return alert('عمر غير منطقي');
+  let data={name:esc(name),age,complaint:esc(comp),triage:er_triage.value,status:'WAITING',createdAt:new Date(),createdBy:currentEmail};
+  let ref=await addDoc(collection(db,'clinic_er'),data);await logAudit('ER_CREATE', 'ER '+name+' - '+data.triage);
+  if(data.triage==='RED'){await sendEmergencyAuto(name, comp, data.triage);}alert('🚨 Saved');loadER();
+};
+async function loadER(){let snap=await getDocs(query(collection(db,'clinic_er'),orderBy('createdAt','desc'),limit(30)));let h='';snap.forEach(d=>{let x=d.data();h+=`<div class="card triage-${esc(x.triage)}" style="padding:8px"><b>${esc(x.triage)} - ${esc(x.name)}</b><br>${esc(x.complaint)}<br><small>${esc(x.createdBy)}</small></div>`});erList.innerHTML=h;}
+
+window.savePatient=async()=>{
+  let name=p_name.value.trim();let phone=p_phone.value.trim();
+  if(!isValidName(name))return alert('اسم غير صحيح');if(!isValidPhone(phone))return alert('تلفون غير صحيح');
+  let mrn='CL-'+Date.now().toString().slice(-6);let data={mrn, name:esc(name), phone:esc(phone), createdAt:new Date(), createdBy:currentEmail};
+  await addDoc(collection(db,'clinic_patients'),data);await logAudit('PATIENT_CREATE','Patient '+mrn);alert('✅ MRN: '+mrn);loadPatients();
+};
+async function loadPatients(){let snap=await getDocs(query(collection(db,'clinic_patients'),orderBy('createdAt','desc'),limit(30)));let h='';snap.forEach(d=>{let x=d.data();h+=`<div class="card" style="padding:8px"><b>${esc(x.mrn)}</b> - ${esc(x.name)} - ${esc(x.phone)}</div>`});patientsList.innerHTML=h;}
+
+window.sendComm=async()=>{let msg=comm_msg.value.trim();if(msg.length<2)return;if(msg.length>150)return alert('رسالة طويلة');await addDoc(collection(db,'clinic_comm'),{to:comm_to.value,msg:esc(msg),from:currentEmail,role,createdAt:new Date()});await logAudit('COMM', 'To '+comm_to.value+': '+msg.slice(0,50));comm_msg.value='';loadComm();};
+async function loadComm(){let snap=await getDocs(query(collection(db,'clinic_comm'),orderBy('createdAt','desc'),limit(30)));let h='';snap.forEach(d=>{let x=d.data();h+=`<div style="padding:6px;border-bottom:1px solid #eee"><b>[${esc(x.to)}]</b> ${esc(x.msg)}<br><small>${esc(x.from)}</small></div>`});commList.innerHTML=h;}
+
+async function loadAudit(){let snap=await getDocs(query(collection(db,'clinic_audit'),orderBy('timestamp','desc'),limit(50)));let h='';snap.forEach(d=>{let x=d.data();let time=x.timestamp?.toDate?x.timestamp.toDate().toLocaleString():'';h+=`<div style="padding:6px;border-bottom:1px solid #eee;font-size:12px"><b>${esc(x.action)}</b> - ${esc(x.details)}<br><small>${esc(x.email)} | ${time}</small></div>`});auditList.innerHTML=h;}
+
+// ===== EMERGENCY WITH SOUND & NOTIFICATION EVEN OUTSIDE APP =====
+window.requestNotifyPermission=async()=>{if("Notification" in window){await Notification.requestPermission();}};
+window.startPresence=async()=>{let update=async()=>{try{await addDoc(collection(db,'clinic_presence'),{email:currentEmail,role,online:true,lastSeen:new Date()});}catch{}};update();setInterval(update,30000);let snap=await getDocs(query(collection(db,'clinic_presence'),orderBy('lastSeen','desc')));let online={};snap.forEach(d=>{let x=d.data();let mins=(new Date()-x.lastSeen.toDate())/1000/60;if(mins<2)online[x.email]=x;});let count=Object.keys(online).length;document.getElementById('onlineCount').innerText='● '+count+' Online';document.getElementById('onlineList').innerHTML='🟢 المتصلين: '+Object.values(online).map(u=>`${u.email} (${u.role})`).join(' | ');};
+
+window.listenEmergency=()=>{
+  onSnapshot(query(collection(db,'clinic_alerts'),orderBy('createdAt','desc'),limit(5)), (snap)=>{
+    snap.docChanges().forEach(ch=>{
+      if(ch.type==='added'){
+        let id=ch.doc.id;if(id===lastAlertId)return;let data=ch.doc.data();let age=(new Date()-(data.createdAt?.toDate?data.createdAt.toDate():new Date()))/1000/60;if(age>5)return;
+        if(data.to==='ALL'||data.to===role.toUpperCase()){
+          lastAlertId=id;localStorage.setItem('lastAlertId',id);triggerEmergency(data);
+        }
+      }
+    });
+  });
+};
+
+window.triggerEmergency=(data)=>{
+  if(emergencyAudio){emergencyAudio.currentTime=0;emergencyAudio.play().catch(()=>{});}
+  if("vibrate" in navigator) navigator.vibrate([500,200,500,200,1000]);
+  if("Notification" in window && Notification.permission==="granted"){
+    new Notification("🚨 طوارئ "+esc(data.triage),{body:esc(data.msg)+"\n"+esc(data.patientName),requireInteraction:true});
+  }
+  let div=document.createElement('div');div.style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px";
+  div.innerHTML=`<div style="background:#fff;border:5px solid #b91c1c;border-radius:20px;padding:20px;max-width:400px;width:100%;text-align:center"><h1 style="color:#b91c1c">🚨 طوارئ</h1><h3>${esc(data.msg)}</h3><p>${esc(data.patientName)} - ${esc(data.triage)}</p><button onclick="emergencyAudio.pause();this.parentElement.parentElement.remove()" style="background:#b91c1c;color:#fff;border:0;padding:12px 24px;border-radius:10px;width:100%;font-weight:900">✅ تم الاستلام</button></div>`;
+  document.body.appendChild(div);document.getElementById('alertBell').style.display='inline-block';
+};
+window.sendEmergency=async()=>{
+  let msg=alertMsg.value.trim();if(!msg)return;if(msg.length>100)return alert('طويل');
+  await addDoc(collection(db,'clinic_alerts'),{msg:esc(msg),patientName:'General',triage:'RED',to:'ALL',from:currentEmail,createdAt:new Date()});await logAudit('EMERGENCY','Alert: '+msg);alertMsg.value='';alert('🚨 تم الإرسال بصوت!');
+};
+window.sendEmergencyAuto=async(name, msg, triage)=>{await addDoc(collection(db,'clinic_alerts'),{msg:esc(msg),patientName:esc(name),triage, to:'ALL', from:currentEmail, createdAt:new Date()});};
+</script>
+</body>
+</html>
